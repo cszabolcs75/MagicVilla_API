@@ -21,6 +21,12 @@
                 <input asp-for="Password" type="password" class="form-control" placeholder="Password..." />
                 <p>The password must be at least 8 characters long, 1 upper case, 1 lower case, 1 special character, 1 number!</p>
             </div>
+            <div class="col-6 offset-3 pb-2"> 
+                <select asp-for="Role" class="form-select" asp-items="@ViewBag.RoleList">
+                    <option disabled selected>--Select Role--</option>
+                </select>
+
+            </div>
             <div class="col-6 offset-3 pb-2">
                 <button type="submit" class="form-control btn-success" value="Submit">Register</button>
 

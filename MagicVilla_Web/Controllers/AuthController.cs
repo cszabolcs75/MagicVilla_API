@@ -5,6 +5,7 @@ using MagicVilla_Web.Services.IServices;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -15,10 +16,13 @@ namespace MagicVilla_Web.Controllers
     {
 
         private readonly IAuthService _authService;
+        private readonly ITokenProvider _tokenProvider;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ITokenProvider tokenProvider)
         {
             _authService = authService;
+            _tokenProvider = tokenProvider;
+
         }
 
         [HttpGet]
@@ -35,10 +39,10 @@ namespace MagicVilla_Web.Controllers
             APIResponse result = await _authService.LoginAsync<APIResponse>(obj);
             if (result !=null && result.IsSuccess)
             {
-                LoginResponseDTO model = JsonConvert.DeserializeObject<LoginResponseDTO>(Convert.ToString(result.Result));
+                TokenDTO model = JsonConvert.DeserializeObject<TokenDTO>(Convert.ToString(result.Result));
 
                 var handler = new JwtSecurityTokenHandler();
-                var jwt = handler.ReadJwtToken(model.Token);
+                var jwt = handler.ReadJwtToken(model.AccessToken);
 
                 var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
                 identity.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(x => x.Type == "unique_name").Value));
@@ -47,7 +51,7 @@ namespace MagicVilla_Web.Controllers
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
 
-                HttpContext.Session.SetString(Details.SessionToken, model.Token);
+                _tokenProvider.SetToken(model);
                 return RedirectToAction("Index", "Home");
             }
             else
@@ -60,6 +64,12 @@ namespace MagicVilla_Web.Controllers
         [HttpGet]
         public IActionResult Register()
         {
+            var roleList = new List<SelectListItem>()
+            {
+                new SelectListItem{Text=Details.Admin, Value=Details.Admin},
+                new SelectListItem{Text=Details.Customer, Value=Details.Customer},
+            };
+            ViewBag.RoleList = roleList;
             return View();
         }
 
@@ -67,11 +77,21 @@ namespace MagicVilla_Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegistrationRequestDTO obj)
         {
+            if (string.IsNullOrEmpty(obj.Role))
+            {
+                obj.Role = Details.Customer;
+            }
             APIResponse result = await _authService.RegisterAsync<APIResponse>(obj);
             if (result != null && result.IsSuccess)
             {
                 return RedirectToAction("Login");
             }
+            var roleList = new List<SelectListItem>()
+            {
+                new SelectListItem{Text=Details.Admin, Value=Details.Admin},
+                new SelectListItem{Text=Details.Customer, Value=Details.Customer},
+            };
+            ViewBag.RoleList = roleList;
             return View();
         }
 
@@ -79,7 +99,10 @@ namespace MagicVilla_Web.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync();
-            HttpContext.Session.SetString(Details.SessionToken, "");
+            var token = _tokenProvider.GetToken();
+            await _authService.LogoutAsync<APIResponse>(token);
+           _tokenProvider.ClearToken();
+            
             return RedirectToAction("Index", "Home");
         }
 

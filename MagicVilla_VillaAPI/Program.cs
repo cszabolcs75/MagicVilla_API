@@ -2,16 +2,20 @@
 using Asp.Versioning;
 using MagicVilla_VillaAPI;
 using MagicVilla_VillaAPI.Data;
+using MagicVilla_VillaAPI.Filters;
 using MagicVilla_VillaAPI.Logging;
+using MagicVilla_VillaAPI.Middleware;
 using MagicVilla_VillaAPI.Models;
 using MagicVilla_VillaAPI.Repository;
 using MagicVilla_VillaAPI.Repository.IRepository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -48,20 +52,25 @@ builder.Services.AddAuthentication(x =>
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key)),
-        ValidateIssuer = false,
-        ValidateAudience = false
+        ValidateIssuer = true,
+        ValidIssuer = "https://magicvilla-api.com",
+        ValidAudience = "dotnetmastery.com",
+        ValidateAudience = true,
+        ClockSkew = TimeSpan.Zero,
     };
 });
 
 builder.Services.AddControllers(option =>
 {
-    option.CacheProfiles.Add("Default30",
-        new CacheProfile()
-        {
-            Duration = 30
-        });
-    //option.ReturnHttpNotAcceptable = true;
-}).AddNewtonsoftJson().AddXmlDataContractSerializerFormatters();
+    option.Filters.Add<CustomExceptionFilter>();
+}).AddNewtonsoftJson().AddXmlDataContractSerializerFormatters().
+ConfigureApiBehaviorOptions(option =>
+{
+    option.ClientErrorMapping[StatusCodes.Status500InternalServerError] = new ClientErrorData
+    {
+        Link = "https:dotnetmastery.com/500"
+    };
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -110,10 +119,26 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+//app.HandleError(app.Environment.IsDevelopment());
+app.UseMiddleware<CustomExceptionMiddleware>();
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
+ApplyMigration();
 app.Run();
+
+void ApplyMigration()
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var _db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        if (_db.Database.GetPendingMigrations().Count()>0)
+        {
+            _db.Database.Migrate();
+        }
+    }
+}

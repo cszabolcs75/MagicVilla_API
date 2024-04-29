@@ -115,6 +115,34 @@ namespace MagicVilla_VillaAPI.Migrations
                     b.ToTable("LocalUsers");
                 });
 
+            modelBuilder.Entity("MagicVilla_VillaAPI.Models.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsValid")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JwtTokenId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Refresh_Token")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("MagicVilla_VillaAPI.Models.Villa", b =>
                 {
                     b.Property<int>("Id")
@@ -130,6 +158,9 @@ namespace MagicVilla_VillaAPI.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Details")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageLocalPath")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
@@ -160,9 +191,9 @@ namespace MagicVilla_VillaAPI.Migrations
                         {
                             Id = 1,
                             Amenity = "",
-                            CreatedDate = new DateTime(2024, 4, 4, 22, 58, 11, 691, DateTimeKind.Local).AddTicks(3509),
+                            CreatedDate = new DateTime(2000, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Details = "Fusce 11 tincidunt maximus leo, sed scelerisque massa auctor sit amet. Donec ex mauris, hendrerit quis nibh ac, efficitur fringilla enim.",
-                            ImageUrl = "https://dotnetmastery.com/bluevillaimages/villa3.jpg",
+                            ImageUrl = "https://placehold.co/600x401",
                             Name = "Royal Villa",
                             Occupancy = 4,
                             Rate = 200.0,
@@ -173,9 +204,9 @@ namespace MagicVilla_VillaAPI.Migrations
                         {
                             Id = 2,
                             Amenity = "",
-                            CreatedDate = new DateTime(2024, 4, 4, 22, 58, 11, 691, DateTimeKind.Local).AddTicks(3576),
+                            CreatedDate = new DateTime(2000, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Details = "Fusce 11 tincidunt maximus leo, sed scelerisque massa auctor sit amet. Donec ex mauris, hendrerit quis nibh ac, efficitur fringilla enim.",
-                            ImageUrl = "https://dotnetmastery.com/bluevillaimages/villa1.jpg",
+                            ImageUrl = "https://placehold.co/600x402",
                             Name = "Premium Pool Villa",
                             Occupancy = 4,
                             Rate = 300.0,
@@ -186,9 +217,9 @@ namespace MagicVilla_VillaAPI.Migrations
                         {
                             Id = 3,
                             Amenity = "",
-                            CreatedDate = new DateTime(2024, 4, 4, 22, 58, 11, 691, DateTimeKind.Local).AddTicks(3580),
+                            CreatedDate = new DateTime(2000, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Details = "Fusce 11 tincidunt maximus leo, sed scelerisque massa auctor sit amet. Donec ex mauris, hendrerit quis nibh ac, efficitur fringilla enim.",
-                            ImageUrl = "https://dotnetmastery.com/bluevillaimages/villa4.jpg",
+                            ImageUrl = "https://placehold.co/600x403",
                             Name = "Luxury Pool Villa",
                             Occupancy = 4,
                             Rate = 400.0,
@@ -199,9 +230,9 @@ namespace MagicVilla_VillaAPI.Migrations
                         {
                             Id = 4,
                             Amenity = "",
-                            CreatedDate = new DateTime(2024, 4, 4, 22, 58, 11, 691, DateTimeKind.Local).AddTicks(3582),
+                            CreatedDate = new DateTime(2000, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Details = "Fusce 11 tincidunt maximus leo, sed scelerisque massa auctor sit amet. Donec ex mauris, hendrerit quis nibh ac, efficitur fringilla enim.",
-                            ImageUrl = "https://dotnetmastery.com/bluevillaimages/villa5.jpg",
+                            ImageUrl = "https://placehold.co/600x404",
                             Name = "Diamond Villa",
                             Occupancy = 4,
                             Rate = 550.0,
@@ -212,9 +243,9 @@ namespace MagicVilla_VillaAPI.Migrations
                         {
                             Id = 5,
                             Amenity = "",
-                            CreatedDate = new DateTime(2024, 4, 4, 22, 58, 11, 691, DateTimeKind.Local).AddTicks(3585),
+                            CreatedDate = new DateTime(2000, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Details = "Fusce 11 tincidunt maximus leo, sed scelerisque massa auctor sit amet. Donec ex mauris, hendrerit quis nibh ac, efficitur fringilla enim.",
-                            ImageUrl = "https://dotnetmastery.com/bluevillaimages/villa2.jpg",
+                            ImageUrl = "https://placehold.co/600x405",
                             Name = "Diamond Pool Villa",
                             Occupancy = 4,
                             Rate = 600.0,

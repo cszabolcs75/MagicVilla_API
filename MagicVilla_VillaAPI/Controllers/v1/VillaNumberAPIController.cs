@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 
-namespace MagicVilla_VillaAPI.Controllers
+namespace MagicVilla_VillaAPI.Controllers.v1
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -30,9 +30,9 @@ namespace MagicVilla_VillaAPI.Controllers
         public VillaNumberAPIController(ILogging logger, IVillaNumberRepository dbContext, IMapper mapper, IVillaRepository dbVilla)
         {
             _logger = logger;
-            this._dbContext = dbContext;
+            _dbContext = dbContext;
             this.mapper = mapper;
-            this._response = new();
+            _response = new();
             _dbVilla = dbVilla;
         }
 
@@ -43,7 +43,7 @@ namespace MagicVilla_VillaAPI.Controllers
         {
             try
             {
-                IEnumerable<VillaNumber> villaList = await _dbContext.GetAllAsync(includeProperties:"Villa");
+                IEnumerable<VillaNumber> villaList = await _dbContext.GetAllAsync(includeProperties: "Villa");
                 _response.Result = mapper.Map<List<VillaNumberDTO>>(villaList);
                 _response.StatusCode = HttpStatusCode.OK;
                 _logger.Log("Getting all villa numbers", "");
@@ -110,7 +110,7 @@ namespace MagicVilla_VillaAPI.Controllers
                     return BadRequest(ModelState);
                 }
 
-                if (await _dbVilla.GetAsync(x=>x.Id == createDTO.VillaID) == null)
+                if (await _dbVilla.GetAsync(x => x.Id == createDTO.VillaID) == null)
                 {
                     ModelState.AddModelError("ErrorMessages", "Villa ID is invalid!");
                     return BadRequest(ModelState);

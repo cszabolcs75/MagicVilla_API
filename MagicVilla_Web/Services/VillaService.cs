@@ -1,68 +1,67 @@
-﻿using MagicVilla_Web.Models.Dto;
+﻿using MagicVilla_Utility;
+using MagicVilla_Web.Models.Dto;
 using MagicVilla_Web.Services.IServices;
 
 namespace MagicVilla_Web.Services
 {
-    public class VillaService : BaseService, IVillaService
+    public class VillaService : IVillaService
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private string villaUrl;
-
-        public VillaService(IHttpClientFactory httpClient, IConfiguration configuration) : base(httpClient)
+        private readonly IBaseService _baseService;
+        public VillaService(IHttpClientFactory httpClient, IConfiguration configuration, IBaseService baseService)
         {
             _httpClientFactory = httpClient;
             villaUrl = configuration.GetValue<string>("ServiceUrls:https");
+            _baseService = baseService;
         }
 
-        public Task<T> CreateAsync<T>(VillaCreateDTO dto, string token)
+        public async Task<T> CreateAsync<T>(VillaCreateDTO dto)
         {
-            return SendAsync<T>(new Models.APIRequest
+            return await _baseService.SendAsync<T>(new Models.APIRequest
             {
                 ApiType = MagicVilla_Utility.Details.ApiType.POST,
                 Data = dto,
                 Url = villaUrl+"/api/villaAPI",
-                Token = token
+                ContentType = Details.ContentType.MultipartFormData
             });
         }
 
-        public Task<T> DeleteAsync<T>(int id, string token)
+        public async Task<T> DeleteAsync<T>(int id)
         {
-            return SendAsync<T>(new Models.APIRequest
+            return await _baseService.SendAsync<T>(new Models.APIRequest
             {
                 ApiType = MagicVilla_Utility.Details.ApiType.DELETE,
-                Url = villaUrl + "/api/villaAPI/"+id,
-                Token = token
+                Url = villaUrl + "/api/villaAPI/"+id
             });
         }
 
-        public Task<T> GetAllAsync<T>(string token)
+        public async Task<T> GetAllAsync<T>()
         {
-            return SendAsync<T>(new Models.APIRequest
+            return await _baseService.SendAsync<T>(new Models.APIRequest
             {
                 ApiType = MagicVilla_Utility.Details.ApiType.GET,
-                Url = villaUrl + "/api/villaAPI",
-                Token = token
+                Url = villaUrl + "/api/villaAPI"
             });
         }
 
-        public Task<T> GetAsync<T>(int id, string token)
+        public async Task<T> GetAsync<T>(int id)
         {
-            return SendAsync<T>(new Models.APIRequest
+            return await _baseService.SendAsync<T>(new Models.APIRequest
             {
                 ApiType = MagicVilla_Utility.Details.ApiType.GET,
-                Url = villaUrl + "/api/villaAPI/"+id,
-                Token = token
+                Url = villaUrl + "/api/villaAPI/"+id
             });
         }
 
-        public Task<T> UpdateAsync<T>(VillaUpdateDTO dto, string token)
+        public async Task<T> UpdateAsync<T>(VillaUpdateDTO dto)
         {
-            return SendAsync<T>(new Models.APIRequest
+            return await _baseService.SendAsync<T>(new Models.APIRequest
             {
                 ApiType = MagicVilla_Utility.Details.ApiType.PUT,
                 Data = dto,
                 Url = villaUrl + "/api/villaAPI/"+ dto.Id,
-                Token = token
+                ContentType = Details.ContentType.MultipartFormData
             });
         }
     }

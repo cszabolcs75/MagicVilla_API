@@ -3,6 +3,7 @@ using MagicVilla_VillaAPI.Models;
 using MagicVilla_VillaAPI.Models.Dto;
 using MagicVilla_VillaAPI.Repository.IRepository;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Win32;
 using System.Net;
 
 namespace MagicVilla_VillaAPI.Controllers
@@ -24,11 +25,23 @@ namespace MagicVilla_VillaAPI.Controllers
             this._response = new();
         }
 
+        [HttpGet("Error")]
+        public async Task<IActionResult> Error()
+        {
+            throw new FileNotFoundException();
+        }
+
+        [HttpGet("ImageError")]
+        public async Task<IActionResult> ImageError()
+        {
+            throw new BadImageFormatException("Fake Image Exception");
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO login)
         {
-            var loginResponse = await _dbContext.Login(login);
-            if (loginResponse.User == null || string.IsNullOrEmpty(loginResponse.Token))
+            var tokenDto = await _dbContext.Login(login);
+            if (tokenDto == null || string.IsNullOrEmpty(tokenDto.AccessToken))
             {
                 _response.IsSuccess = false;
                 _response.StatusCode = HttpStatusCode.BadRequest;
@@ -37,7 +50,7 @@ namespace MagicVilla_VillaAPI.Controllers
             }
             _response.IsSuccess = true;
             _response.StatusCode = HttpStatusCode.OK;
-            _response.Result = loginResponse;
+            _response.Result = tokenDto;
             return Ok(_response);
         }
 
@@ -64,6 +77,49 @@ namespace MagicVilla_VillaAPI.Controllers
             _response.IsSuccess = true;
             _response.StatusCode = HttpStatusCode.OK;
             return Ok(_response);
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> GetNewTokenFromRefreshToken([FromBody] TokenDTO tokenDTO)
+        {
+            if (ModelState.IsValid)
+            {
+                var tokenDTOResponse = await _dbContext.RefreshAccessToken(tokenDTO);
+
+                if (tokenDTOResponse == null || string.IsNullOrEmpty(tokenDTOResponse.AccessToken))
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages.Add("Invalid Token");
+                    return BadRequest(_response);
+                }
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.Result = tokenDTOResponse;
+                return Ok(_response);
+            }
+            else
+            {
+                _response.IsSuccess = false;
+                _response.Result = "Invalid Input";
+                return BadRequest(_response);
+            }         
+        }
+
+        [HttpPost("revoke")]
+        public async Task<IActionResult> RevokeRefreshToken([FromBody] TokenDTO tokenDTO)
+        {
+            
+            if (!ModelState.IsValid)
+            {
+                await _dbContext.RevokeRefreshToken(tokenDTO);
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                return Ok(_response);
+            }
+            _response.IsSuccess = false;
+            _response.Result = "Invalid Input";
+            return BadRequest(_response);
         }
     }
 }
